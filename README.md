@@ -52,6 +52,16 @@ cd reservation-microservice
 ```bash
 ./mvnw spring-boot:run
 ```
+### 3. H2 Database Access
+The app uses an in-memory H2 database that initializes automatically on startup.
+
+H2 Console URL: http://localhost:8081/h2-console
+
+JDBC URL: jdbc:h2:mem:tablesdb
+
+Username: sa
+
+Password: (leave blank)
 
 > Make sure the **Table Microservice** is running first.
 
