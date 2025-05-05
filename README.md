@@ -1,10 +1,10 @@
-# 📅 Reservation Microservice
+# Reservation Microservice
 
 This microservice handles customer reservations for restaurant tables. It integrates with the Table Microservice to determine table availability and manages a dynamic waitlist for full capacity scenarios.
 
 ---
 
-## 📦 Tech Stack
+## Tech Stack
 
 - Java 21
 - Spring Boot
@@ -15,7 +15,7 @@ This microservice handles customer reservations for restaurant tables. It integr
 
 ---
 
-## 🧭 Responsibilities
+## Responsibilities
 
 - Process table reservation and cancellation requests
 - Interact with Table Microservice to verify table status
@@ -24,7 +24,7 @@ This microservice handles customer reservations for restaurant tables. It integr
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 com.restaurant.reservation
 ├── client # Feign/Rest clients to communicate with other services
@@ -38,7 +38,7 @@ com.restaurant.reservation
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone the repository
 
@@ -57,9 +57,9 @@ cd reservation-microservice
 
 ---
 
-## 🔗 API Endpoint
+## API Endpoint
 
-### 📥 Make or Cancel Reservation
+### Make or Cancel Reservation
 
 **Request:**
 
@@ -92,7 +92,7 @@ POST /reservations
 
 ---
 
-### 🕒 Waitlisted Response
+### Waitlisted Response
 
 ```json
 {
@@ -104,7 +104,7 @@ POST /reservations
 
 ---
 
-## ❗ Error Handling
+## Error Handling
 
 - `404 Not Found` – Table not found
 - `400 Bad Request` – Invalid reservation type
@@ -112,6 +112,6 @@ POST /reservations
 
 ---
 
-## 📜 License
+##  License
 
 This project is licensed under the MIT License.
