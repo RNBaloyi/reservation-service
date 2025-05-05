@@ -9,7 +9,6 @@ This microservice handles customer reservations for restaurant tables. It integr
 - Java 21
 - Spring Boot
 - RESTful APIs
-- In-memory waitlist
 - Maven
 - Openfeign
 
@@ -52,6 +51,8 @@ cd reservation-microservice
 ```bash
 ./mvnw spring-boot:run
 ```
+The service will start on port 8082.
+
 ### 3. H2 Database Access
 The app uses an in-memory H2 database that initializes automatically on startup.
 
