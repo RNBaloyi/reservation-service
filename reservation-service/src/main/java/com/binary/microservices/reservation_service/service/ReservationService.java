@@ -97,10 +97,7 @@ public class ReservationService implements IReservationService{
 
     private ReservationResponse processCancellationRequest(ReservationRequest request) {
 
-
         TableDTO table = tableServiceClient.getTable(request.getTableId());
-
-
 
         if (table == null) {
             throw new TableNotFoundException("Table not found");
@@ -130,7 +127,10 @@ public class ReservationService implements IReservationService{
                 waitlistRepository.delete(nextCustomer);
                 updateWaitlistPositions(request.getTableId());
 
-                return ReservationResponse.createSuccess(newReservation.getReservationId(), request.getTableId());
+                return ReservationResponse.createCancelled(
+                        request.getTableId(),
+                        "Your reservation has been cancelled. Table assigned to customer " + nextCustomer.getCustomerId()
+                );
             }
         }
 
