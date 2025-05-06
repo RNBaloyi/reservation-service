@@ -11,7 +11,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({InvalidReservationException.class, CustomerNotFoundException.class})
     public ResponseEntity<ErrorResponse> handleBadRequest(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse(ex.getMessage()));
     }
 
@@ -28,4 +28,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse("Reservation processing failed"));
     }
+
+    @ExceptionHandler(ReservationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleReservationNotFound(ReservationNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(ex.getMessage()));
+    }
+
 }

@@ -21,7 +21,6 @@ public class ReservationService implements IReservationService{
 
     private static final Logger logger = LoggerFactory.getLogger(ReservationService.class);
 
-
     private final TableServiceClient tableServiceClient;
     private final WaitlistRepository waitlistRepository;
     private final CustomerRepository customerRepository;
@@ -43,14 +42,11 @@ public class ReservationService implements IReservationService{
 
         try {
             table = tableServiceClient.getTable(request.getTableId());
-
         } catch (FeignException.NotFound ex) {
-
             throw new TableNotFoundException("Table not found");
         } catch (FeignException ex) {
             throw new RuntimeException("Error retrieving table from table service: " + ex.getMessage(), ex);
         }
-
 
         if (!"reserve".equalsIgnoreCase(request.getReservationType()) &&
                 !"cancel".equalsIgnoreCase(request.getReservationType())) {
@@ -60,19 +56,19 @@ public class ReservationService implements IReservationService{
         customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found"));
 
-
         try {
             if ("reserve".equalsIgnoreCase(request.getReservationType())) {
                 return processReservationRequest(request);
             } else {
                 return processCancellationRequest(request);
             }
-        } catch (TableNotFoundException e) {
+        } catch (TableNotFoundException | ReservationNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Reservation processing failed", e);
         }
     }
+
 
     private ReservationResponse processReservationRequest(ReservationRequest request) {
         TableDTO table = tableServiceClient.getTable(request.getTableId());
@@ -96,7 +92,6 @@ public class ReservationService implements IReservationService{
 
 
     private ReservationResponse processCancellationRequest(ReservationRequest request) {
-
         TableDTO table = tableServiceClient.getTable(request.getTableId());
 
         if (table == null) {
@@ -105,6 +100,10 @@ public class ReservationService implements IReservationService{
 
         Optional<Reservation> existingReservation = reservationRepository
                 .findByTableIdAndCustomerId(request.getTableId(), request.getCustomerId());
+
+        if (existingReservation.isEmpty()) {
+            throw new ReservationNotFoundException("No existing reservation found for this customer and table");
+        }
 
         List<WaitlistEntry> waitlist = waitlistRepository.findByTableIdOrderByPositionAsc(request.getTableId());
 
@@ -116,13 +115,14 @@ public class ReservationService implements IReservationService{
                 newReservation.setCustomerId(nextCustomer.getCustomerId());
                 newReservation = reservationRepository.save(newReservation);
 
-                tableServiceClient.updateTableAvailability(request.getTableId(),
-                        new TableDTO(request.getTableId(), 0, "", false));
+                tableServiceClient.updateTableAvailability(
+                        request.getTableId(),
+                        new TableDTO(request.getTableId(), 0, "", false)
+                );
 
-                existingReservation.ifPresent(res -> {
-                    res.setStatus(Reservation.ReservationStatus.CANCELLED);
-                    reservationRepository.save(res);
-                });
+                Reservation reservation = existingReservation.get();
+                reservation.setStatus(Reservation.ReservationStatus.CANCELLED);
+                reservationRepository.save(reservation);
 
                 waitlistRepository.delete(nextCustomer);
                 updateWaitlistPositions(request.getTableId());
@@ -134,16 +134,23 @@ public class ReservationService implements IReservationService{
             }
         }
 
-        tableServiceClient.updateTableAvailability(request.getTableId(),
-                new TableDTO(request.getTableId(), 0, "", true));
 
-        existingReservation.ifPresent(res -> {
-            res.setStatus(Reservation.ReservationStatus.CANCELLED);
-            reservationRepository.save(res);
-        });
+        tableServiceClient.updateTableAvailability(
+                request.getTableId(),
+                new TableDTO(request.getTableId(), 0, "", true)
+        );
 
-        return ReservationResponse.createCancelled(request.getTableId(), "Table is now available");
+        Reservation reservation = existingReservation.get();
+        reservation.setStatus(Reservation.ReservationStatus.CANCELLED);
+        reservationRepository.save(reservation);
+
+        return ReservationResponse.createCancelled(
+                request.getTableId(),
+                "Your reservation has been cancelled and the table is now available."
+        );
     }
+
+
 
     private int addToWaitlist(ReservationRequest request) {
         List<WaitlistEntry> existingEntries = waitlistRepository.findByTableIdOrderByPositionAsc(request.getTableId());
